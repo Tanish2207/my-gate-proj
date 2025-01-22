@@ -1,54 +1,54 @@
-import { useState , useEffect} from 'react';
-import { PlusIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-
+import { useState, useEffect } from "react";
+import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { add_visitor } from "../api/all_api";
 
 export default function SecurityDashboard() {
   const [visitors, setVisitors] = useState([]);
+  const [showAddVisitor, setShowAddVisitor] = useState(false);
+  const [newVisitor, setNewVisitor] = useState({
+    vis_name: "",
+    vis_flat_num: "",
+    vis_mobile: "",
+    vis_reason: "",
+  });
 
   useEffect(() => {
     const fetchVisitors = async () => {
       try {
-        const response = await fetch('/api/all_visitors');
+        const response = await fetch("/api/all_visitors");
         if (response.ok) {
           const data = await response.json();
-          console.log(response)
+          // console.log(response)
           setVisitors(data);
         } else {
-          console.error('Failed to fetch visitors');
+          console.error("Failed to fetch visitors");
         }
       } catch (error) {
-        console.error('Error fetching visitors:', error);
+        console.error("Error fetching visitors:", error);
       }
     };
 
     fetchVisitors();
-  }, []);
+  }, [showAddVisitor]);
 
 
-  
 
-  const [showAddVisitor, setShowAddVisitor] = useState(false);
-  const [newVisitor, setNewVisitor] = useState({
-    name: '',
-    flatNumber: '',
-    mobile: '',
-    reason: '',
-  });
-
-  const handleAddVisitor = (e) => {
+  const handleAddVisitor = async (e) => {
     e.preventDefault();
-    const visitor = {
-      id: Date.now(),
+    const new_instance_visitor = {
       ...newVisitor,
-      entryTime: new Date().toLocaleString(),
+      // vis_entry_time: new Date().toLocaleString(),
     };
-    setVisitors([visitor, ...visitors]);
-    setNewVisitor({ name: '', flatNumber: '', mobile: '', reason: '' });
-    setShowAddVisitor(false);
+    setVisitors([new_instance_visitor, ...visitors]);
+    console.log(new_instance_visitor);
+    const response = await add_visitor(new_instance_visitor);
+    console.log(response)
+    // setNewVisitor({ name: "", flatNumber: "", mobile: "", reason: "" });
+    // setShowAddVisitor(false);
   };
 
   const handleDeleteVisitor = (id) => {
-    setVisitors(visitors.filter(visitor => visitor.id !== id));
+    setVisitors(visitors.filter((visitor) => visitor.id !== id));
   };
 
   return (
@@ -67,13 +67,17 @@ export default function SecurityDashboard() {
       {showAddVisitor && (
         <div className="glass-effect rounded-xl p-6 card-hover">
           <h3 className="text-xl font-bold mb-4 text-secondary">New Visitor</h3>
-          <form onSubmit={handleAddVisitor} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <form
+            className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          >
             <input
               type="text"
               placeholder="Visitor Name"
               className="bg-background p-2 rounded-lg"
               value={newVisitor.name}
-              onChange={(e) => setNewVisitor({ ...newVisitor, name: e.target.value })}
+              onChange={(e) =>
+                setNewVisitor({ ...newVisitor, vis_name: e.target.value })
+              }
               required
             />
             <input
@@ -81,7 +85,9 @@ export default function SecurityDashboard() {
               placeholder="Flat Number"
               className="bg-background p-2 rounded-lg"
               value={newVisitor.flatNumber}
-              onChange={(e) => setNewVisitor({ ...newVisitor, flatNumber: e.target.value })}
+              onChange={(e) =>
+                setNewVisitor({ ...newVisitor, vis_flat_num: e.target.value })
+              }
               required
             />
             <input
@@ -89,7 +95,9 @@ export default function SecurityDashboard() {
               placeholder="Mobile Number"
               className="bg-background p-2 rounded-lg"
               value={newVisitor.mobile}
-              onChange={(e) => setNewVisitor({ ...newVisitor, mobile: e.target.value })}
+              onChange={(e) =>
+                setNewVisitor({ ...newVisitor, vis_mobile: e.target.value })
+              }
               required
             />
             <input
@@ -97,10 +105,15 @@ export default function SecurityDashboard() {
               placeholder="Reason for Visit"
               className="bg-background p-2 rounded-lg"
               value={newVisitor.reason}
-              onChange={(e) => setNewVisitor({ ...newVisitor, reason: e.target.value })}
+              onChange={(e) =>
+                setNewVisitor({ ...newVisitor, vis_reason: e.target.value })
+              }
               required
             />
-            <button type="submit" className="btn-secondary md:col-span-2">
+            <button
+              onClick={handleAddVisitor}
+              className="btn-secondary md:col-span-2"
+            >
               Add Visitor
             </button>
           </form>
@@ -129,7 +142,7 @@ export default function SecurityDashboard() {
                   <td className="py-3">{visitor.visitorMobile}</td>
                   <td className="py-3">{visitor.visitReason}</td>
                   <td className="py-3">{visitor.entryTime}</td>
-                  <td className="py-3">{visitor.exitTime || '-'}</td>
+                  <td className="py-3">{visitor.exitTime || "-"}</td>
                   <td className="py-3">
                     <div className="flex space-x-2">
                       <button className="p-1 text-primary hover:text-primary/80">

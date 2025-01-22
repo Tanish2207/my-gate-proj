@@ -1,21 +1,46 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   UserCircleIcon,
   UsersIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
-import { get_owner } from "../api/all_api";
+
+import { get_flat_wise_visitor, get_owner, search_name } from "../api/all_api";
+import debounce from "lodash/debounce";
 
 export default function FlatOwnerDashboard() {
   const [ownerDetails, setOwnerDetails] = useState(null);
+  const [visitors, setVisitors] = useState([]);
+  const [originalVisitors, setOriginalVisitors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState([]);
+  const [global_flat_num, setglobalFlatNum] = useState(101)
+
+  const fetchSearchResults = async (searchQuery, flatNumber) => {
+    if (!searchQuery) {
+      // setResults([]);
+      setVisitors(originalVisitors);
+      return;
+    }
+
+    try {
+      const data = await search_name(searchQuery, flatNumber)
+      console.log(data);
+      setVisitors(data);
+    } catch (error) {
+      console.error("Error fetching search results:");
+    }
+  };
+
+  const debouncedFetch = useCallback(
+    debounce((value) => fetchSearchResults(value, global_flat_num), 300)
+  );
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       try {
-        get_owner(2002).then((res) => {
-          console.log(res);
+        get_owner(global_flat_num).then((res) => {
           setOwnerDetails(res);
         });
       } catch (err) {
@@ -24,8 +49,25 @@ export default function FlatOwnerDashboard() {
         setLoading(false);
       }
     }
+    async function fetchVisitors() {
+      setLoading(true);
+      try {
+        const res = await get_flat_wise_visitor(global_flat_num);
+        setOriginalVisitors(res);
+        setVisitors(res);
+      } catch (error) {
+        console.log(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
     fetchData();
+    fetchVisitors();
   }, []);
+
+  // useEffect(() => {
+  //   console.log(results)
+  // }, [results])
 
   const [flatDetails] = useState({
     flatNumber: "101",
@@ -33,17 +75,6 @@ export default function FlatOwnerDashboard() {
     contactNumber: "+1 234 567 890",
     familyMembers: ["Jane Doe", "Jimmy Doe"],
   });
-
-  const [visitors] = useState([
-    {
-      id: 1,
-      name: "Alice Smith",
-      mobile: "+1 987 654 321",
-      reason: "Maintenance",
-      entryTime: "2024-03-10 10:00 AM",
-      exitTime: "2024-03-10 11:30 AM",
-    },
-  ]);
 
   return (
     <div className="space-y-8">
@@ -64,7 +95,11 @@ export default function FlatOwnerDashboard() {
               <ClockIcon className="h-6 w-6 text-secondary" />
               <div>
                 <p className="text-sm text-text/60">Contact Number</p>
-                <p className="text-lg">{flatDetails.contactNumber}</p>
+                <p className="text-lg">{ownerDetails?.at(0)?.mobile}</p>
+              </div>
+              <div>
+                <p className="text-sm text-text/60">Flat no.</p>
+                <p className="text-lg">{ownerDetails?.at(0)?.flat_number}</p>
               </div>
             </div>
           </div>
@@ -85,9 +120,19 @@ export default function FlatOwnerDashboard() {
       </div>
 
       <div className="glass-effect rounded-xl p-6 card-hover">
-        <h2 className="text-2xl font-bold mb-6 text-primary">
-          Recent Visitors
-        </h2>
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold mb-6 text-primary">
+            Recent Visitors
+          </h2>
+          <div className="">
+            <input
+              type="text"
+              className="bg-gray-400 rounded-sm text-gray-900 px-2 outline-none placeholder:text-gray-700"
+              placeholder="Search name"
+              onChange={(e) => debouncedFetch(e.target.value)}
+            />
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -100,15 +145,20 @@ export default function FlatOwnerDashboard() {
               </tr>
             </thead>
             <tbody>
-              {visitors.map((visitor) => (
-                <tr key={visitor.id} className="border-b border-white/5">
-                  <td className="py-3">{visitor.name}</td>
-                  <td className="py-3">{visitor.mobile}</td>
-                  <td className="py-3">{visitor.reason}</td>
-                  <td className="py-3">{visitor.entryTime}</td>
-                  <td className="py-3">{visitor.exitTime}</td>
-                </tr>
-              ))}
+              {loading
+                ? "Loading..."
+                : visitors.map((visitor) => (
+                    <tr
+                      key={visitor.vis_id}
+                      className="border-b border-white/5"
+                    >
+                      <td className="py-3">{visitor.vis_name}</td>
+                      <td className="py-3">{visitor.vis_mobile}</td>
+                      <td className="py-3">{visitor.vis_reason}</td>
+                      <td className="py-3">{visitor.vis_entry}</td>
+                      <td className="py-3">{visitor.vis_exit}</td>
+                    </tr>
+                  ))}
             </tbody>
           </table>
         </div>

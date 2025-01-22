@@ -1,18 +1,32 @@
-import { useState } from 'react';
-import { UserCircleIcon, PhoneIcon, UsersIcon } from '@heroicons/react/24/outline';
+import { useState } from "react";
+import {
+  UserCircleIcon,
+  PhoneIcon,
+  UsersIcon,
+} from "@heroicons/react/24/outline";
+import { add_flat } from "../api/all_api";
 
 export default function AddFlat() {
   const [flatDetails, setFlatDetails] = useState({
-    flatNumber: '',
-    ownerName: '',
-    contactNumber: '',
-    familyMembers: [''],
+    flatNumber: "",
+    ownerName: "",
+    contactNumber: "",
+    familyMembers: [""],
   });
+
+  // const handle_add_flat = async () => {
+  //   try {
+  //     add_flat(flatDetails);
+  //     console.log("Flat added successfully")
+  //   } catch (err) {
+  //     console.log(err.message);
+  //   }
+  // };
 
   const handleAddFamilyMember = () => {
     setFlatDetails({
       ...flatDetails,
-      familyMembers: [...flatDetails.familyMembers, ''],
+      familyMembers: [...flatDetails.familyMembers, ""],
     });
   };
 
@@ -27,8 +41,8 @@ export default function AddFlat() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission
-    console.log(flatDetails);
+    add_flat(flatDetails);
+    // console.log(flatDetails);
   };
 
   return (
@@ -40,12 +54,19 @@ export default function AddFlat() {
             <div className="flex items-center space-x-3">
               <UserCircleIcon className="h-6 w-6 text-secondary" />
               <div className="flex-1">
-                <label className="block text-sm text-text/60 mb-1">Flat Number</label>
+                <label className="block text-sm text-text/60 mb-1">
+                  Flat Number
+                </label>
                 <input
                   type="text"
                   className="w-full bg-background p-2 rounded-lg"
                   value={flatDetails.flatNumber}
-                  onChange={(e) => setFlatDetails({ ...flatDetails, flatNumber: e.target.value })}
+                  onChange={(e) =>
+                    setFlatDetails({
+                      ...flatDetails,
+                      flatNumber: e.target.value,
+                    })
+                  }
                   required
                 />
               </div>
@@ -54,12 +75,19 @@ export default function AddFlat() {
             <div className="flex items-center space-x-3">
               <UserCircleIcon className="h-6 w-6 text-secondary" />
               <div className="flex-1">
-                <label className="block text-sm text-text/60 mb-1">Owner Name</label>
+                <label className="block text-sm text-text/60 mb-1">
+                  Owner Name
+                </label>
                 <input
                   type="text"
                   className="w-full bg-background p-2 rounded-lg"
                   value={flatDetails.ownerName}
-                  onChange={(e) => setFlatDetails({ ...flatDetails, ownerName: e.target.value })}
+                  onChange={(e) =>
+                    setFlatDetails({
+                      ...flatDetails,
+                      ownerName: e.target.value,
+                    })
+                  }
                   required
                 />
               </div>
@@ -68,12 +96,19 @@ export default function AddFlat() {
             <div className="flex items-center space-x-3">
               <PhoneIcon className="h-6 w-6 text-secondary" />
               <div className="flex-1">
-                <label className="block text-sm text-text/60 mb-1">Contact Number</label>
+                <label className="block text-sm text-text/60 mb-1">
+                  Contact Number
+                </label>
                 <input
                   type="tel"
                   className="w-full bg-background p-2 rounded-lg"
                   value={flatDetails.contactNumber}
-                  onChange={(e) => setFlatDetails({ ...flatDetails, contactNumber: e.target.value })}
+                  onChange={(e) =>
+                    setFlatDetails({
+                      ...flatDetails,
+                      contactNumber: e.target.value,
+                    })
+                  }
                   required
                 />
               </div>
@@ -99,7 +134,9 @@ export default function AddFlat() {
                   type="text"
                   className="w-full bg-background p-2 rounded-lg"
                   value={member}
-                  onChange={(e) => handleFamilyMemberChange(index, e.target.value)}
+                  onChange={(e) =>
+                    handleFamilyMemberChange(index, e.target.value)
+                  }
                   placeholder={`Family Member ${index + 1}`}
                 />
               ))}
