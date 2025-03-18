@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from "express";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { owner, visitors, visits } from "./drizzle/schema.js";
-import { and, eq, ilike } from "drizzle-orm";
+import { and, between, eq, ilike } from "drizzle-orm";
 import moment from "moment";
 
 const app = express();
@@ -26,6 +26,7 @@ app.get("/api/flat/:flat_id", async (req, res) => {
         name: owner.name,
         mobile: owner.mobileNumber,
         flat_number: owner.flatNumber,
+        maintenance_amt: owner.maintenance,
       })
       .from(owner)
       .where(eq(owner.flatNumber, flat_id));
@@ -165,6 +166,22 @@ app.get("/api/all_visitors", async (req, res) => {
   }
 });
 
+app.get("/api/visitors_count/:flat_num", async (req, res) => {
+  try {
+    const { flat_num } = req.params;
+    const result = await db
+      .select({
+        count: sql`count(*)::int`,
+      })
+      .from(visits)
+      .where(eq(visits.flatId, flat_num));
+
+    res.json(result[0]);
+  } catch (error) {
+    res.status(500).json({ error: "Error getting visitor count" });
+  }
+});
+
 // Get all the visitors visited to a flat ---> For Admin
 app.get("/api/visitors_of_flat/:flat_num", async (req, res) => {
   try {
@@ -220,6 +237,53 @@ app.get("/api/search", async (req, res) => {
   } catch (error) {
     console.error("Error fetching search results:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+app.get("/api/inactive_flats", async (req, res) => {
+  try {
+    const result = await db.execute("SELECT * from get_inac_flats()");
+    const userCount = result.rows;
+    res.status(200).json(userCount);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+app.get("/api/visitors_between_dates", async (req, res) => {
+  const { flat_num, start_date, end_date } = req.query;
+  console.log(flat_num, start_date, end_date);
+  console.log(moment(start_date).startOf("day").toDate());
+  console.log(moment(end_date).startOf("day").toDate());
+  try {
+    const results = await db
+      .select({
+        vis_id: visitors.id,
+        vis_name: visitors.name,
+        vis_mobile: visitors.mobileNumber,
+        vis_reason: visits.reason,
+        vis_entry: visits.entryTime,
+        vis_exit: visits.exitTime,
+      })
+      .from(visits)
+      .innerJoin(owner, eq(owner.flatNumber, visits.flatId))
+      .innerJoin(visitors, eq(visits.visitorId, visitors.id))
+      .where(
+        and(eq(owner.flatNumber, flat_num)),
+        between(
+          visits.entryTime,
+          moment(start_date).startOf("day").toDate(),
+          moment(end_date).endOf("day").toDate()
+        )
+      );
+
+    res.status(200).json(results);
+  } catch (error) {
+    console.error("Error filtering by date range:", error);
+    res.status(500).json({
+      error: "Error filtering by date range",
+      details: error.message,
+    });
   }
 });
 app.listen(3000, () => {

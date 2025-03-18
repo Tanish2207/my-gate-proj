@@ -107,3 +107,24 @@ export const search_name = async (query_name, flat_num) => {
     return { error: "An error occurred while searching name" };
   }
 };
+export const get_visitors_count = async (flatNumber) => {
+  try {
+    const response = await fetch(`/api/visitors_count/${flatNumber}`);
+    if (response.ok) {
+      return response.json();
+    }
+  } catch (error) {
+    console.error("Error fetching visitor count:", error);
+  }
+};
+
+export const get_inactive_flats = async() => {
+  try {
+    const response = await fetch('/api/inactive_flats');
+    if (response.ok) {
+      return response.json();
+    }
+  } catch (error) {
+    console.error("Error fetching visitor count:", error);
+  }
+}

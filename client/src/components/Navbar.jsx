@@ -7,7 +7,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
-            <Link to="/" className="text-xl font-bold text-primary">ResManage</Link>
+            <Link to="/" className="text-xl font-bold text-primary">GateBuddy</Link>
             <div className="flex space-x-4">
               <Link to="/" className="flex items-center space-x-2 text-text hover:text-primary transition-colors">
                 <HomeIcon className="h-5 w-5" />

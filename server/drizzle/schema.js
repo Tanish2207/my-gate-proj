@@ -24,6 +24,7 @@ export const owner = pgTable(
     name: varchar({ length: 255 }).notNull(),
     mobileNumber: varchar("mobile_number", { length: 10 }).notNull(),
     flatNumber: integer("flat_number").notNull(),
+    maintenance: integer("maintenance"),
   },
   (table) => [unique("owner_flat_number_key").on(table.flatNumber)]
 );
